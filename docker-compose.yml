@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   duckdb-etl:
@@ -6,25 +6,27 @@ services:
       context: ./etl
       dockerfile: Dockerfile
     container_name: duckdb-etl
-    env_file:
-      - config.env
-    environment:
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ap-northeast-1}
-      - S3_INPUT_BUCKET=${S3_INPUT_BUCKET}
-      - S3_OUTPUT_BUCKET=${S3_OUTPUT_BUCKET}
-    # Uncomment to run automatically on container start
-    # command: ["2025-10-17"]  # Optional: specify date parameter
     volumes:
       # Optional: Mount local directories for debugging
       - ./etl/transform.sql:/app/transform.sql:ro
       - ./etl/run_etl.sh:/app/run_etl.sh:ro
-    restart: "no"  # Set to "always" for scheduled runs with cron
+    restart: "no" # Set to "always" for scheduled runs with cron
 
     # Resource limits (optional)
     deploy:
       resources:
         limits:
           memory: 2G
-          cpus: '1.0'
+          cpus: "1.0"
+
+  metabase:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: metabase-duckdb:latest
+    container_name: metabase-duckdb
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_PLUGINS_DIR=/plugins
+    restart: unless-stopped

@@ -1,48 +1,51 @@
--- DuckDB ETL Script: Transform JSONL.gz to Parquet
--- Reference: https://zenn.dev/shiguredo/articles/duckdb-jsonlines-log
--- Reads directly from S3, transforms, and writes back to S3
+-- DuckDB ETLスクリプト: JSONL.gz → Parquet変換
+-- 参考: https://zenn.dev/shiguredo/articles/duckdb-jsonlines-log
+-- S3から直接読み込み、変換処理を行い、S3へ書き戻す
 
--- Install and load required extensions
+-- 必要な拡張機能をインストール・ロード
 INSTALL httpfs;
+
 INSTALL json;
+
 LOAD httpfs;
+
 LOAD json;
 
--- Configure S3 credentials from environment variables
-SET s3_region='${AWS_DEFAULT_REGION}';
-SET s3_access_key_id='${AWS_ACCESS_KEY_ID}';
-SET s3_secret_access_key='${AWS_SECRET_ACCESS_KEY}';
-
--- ============================================================================
--- Step 1: Read all log-*.jsonl.gz files from S3
--- ============================================================================
-
-CREATE OR REPLACE TABLE raw_logs AS
-SELECT *
-FROM read_json_auto(
-    '${S3_INPUT_PATTERN}',
-    format='newline_delimited',
-    filename=true,
-    ignore_errors=true,
-    maximum_object_size=10485760
+-- 環境変数からS3認証情報を設定
+CREATE
+OR REPLACE SECRET secret (
+  TYPE s3,
+  PROVIDER credential_chain,
+  CHAIN 'instance'
 );
 
 -- ============================================================================
--- Step 2: Transform and clean the data
+-- Step 1: S3からすべてのlog-*.jsonl.gzファイルを読み込み
 -- ============================================================================
--- Customize based on your actual log schema
+CREATE
+OR REPLACE TABLE raw_logs AS
+SELECT
+  *
+FROM
+  read_json_auto (
+    's3://duckdb-metabase-data-junichi/raw/log-*.jsonl.gz',
+    filename = true
+  );
 
-CREATE OR REPLACE TABLE cleaned_logs AS
-SELECT *
-FROM raw_logs
--- Add WHERE clause for filtering if needed
+-- ============================================================================
+-- Step 2: データの変換・クリーニング
+-- ============================================================================
+-- 実際のログスキーマに応じてカスタマイズしてください
+CREATE
+OR REPLACE TABLE cleaned_logs AS
+SELECT
+  *
+FROM
+  raw_logs
+  -- 必要に応じてWHERE句でフィルタリング
 ;
 
 -- ============================================================================
--- Step 3: Export to Parquet directly to S3
+-- Step 3: ParquetファイルとしてS3へ直接エクスポート
 -- ============================================================================
-
-COPY cleaned_logs TO '${S3_OUTPUT_PATH}' (
-    FORMAT PARQUET,
-    COMPRESSION 'ZSTD'
-);
+COPY cleaned_logs TO 's3://duckdb-metabase-data-junichi/prosecced/' (FORMAT PARQUET, COMPRESSION 'ZSTD');
