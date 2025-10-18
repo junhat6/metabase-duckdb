@@ -1,6 +1,8 @@
-FROM alpine:3.19
+FROM debian:bookworm-slim
 
-RUN apk add --no-cache bash curl unzip && \
+RUN apt-get update && \
+    apt-get install -y bash curl unzip ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
     curl -L https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-amd64.zip -o duckdb.zip && \
     unzip duckdb.zip -d /usr/local/bin && \
     rm duckdb.zip && \
