@@ -100,3 +100,16 @@ deploy:
       memory: 4G # 増やす
 ```
 
+名前
+metabase01
+性
+空白
+
+会社名
+metabase01
+
+メールアドレス
+metabase@email.com
+possword
+metabase123
+
