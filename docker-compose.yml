@@ -24,7 +24,8 @@ services:
       # Optional: Mount local directories for debugging
       - ./etl/transform.sql:/app/transform.sql:ro
       - ./etl/run_etl.sh:/app/run_etl.sh:ro
-    restart: "no" # Set to "always" for scheduled runs with cron
+    profiles:
+      - manual  # Only start when explicitly specified
 
     # Resource limits (optional)
     deploy:

@@ -48,4 +48,4 @@ FROM
 -- ============================================================================
 -- Step 3: ParquetファイルとしてS3へ直接エクスポート
 -- ============================================================================
-COPY cleaned_logs TO 's3://duckdb-metabase-data-junichi/prosecced/' (FORMAT PARQUET, COMPRESSION 'ZSTD');
+COPY cleaned_logs TO 's3://duckdb-metabase-data-junichi/processed/cleaned-data.parquet' (FORMAT PARQUET, COMPRESSION 'ZSTD');
